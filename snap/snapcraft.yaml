@@ -1,0 +1,85 @@
+name: himalaya
+base: core26
+version: '2.2.1'
+title: Himalaya
+icon: snap/gui/himalaya.png
+summary: Manage your emails from the command line
+description: |
+  Himalaya is a command-line email client. It lists, reads, writes, moves and
+  deletes messages over IMAP, SMTP, JMAP, the Gmail and Microsoft Graph APIs,
+  and local Maildir and mbox folders, with multiple accounts in one TOML file.
+
+  Run himalaya without a configuration to start the setup wizard, which
+  discovers your provider's servers from your email address.
+
+  **Examples**
+
+     himalaya
+     himalaya envelope list
+     himalaya message read 42
+
+  **Passwords**
+
+  The snap includes secret-tool, so a password command can read your desktop
+  keyring after you connect the password-manager-service interface:
+
+     sudo snap connect himalaya:password-manager-service
+
+  **File access**
+
+  Himalaya can use Maildir and mbox folders in your home directory. To also
+  use removable media (/media, /mnt), run:
+
+     sudo snap connect himalaya:removable-media
+license: MIT OR Apache-2.0
+grade: stable
+confinement: strict
+website: https://pimalaya.org/
+source-code:
+  - https://github.com/pimalaya/himalaya
+  - https://github.com/sidalit/himalaya-snap
+issues:
+  - https://github.com/pimalaya/himalaya/issues
+  - https://github.com/sidalit/himalaya-snap/issues
+contact: https://github.com/sidalit/himalaya-snap/issues
+
+platforms:
+  amd64:
+  arm64:
+
+apps:
+  himalaya:
+    command: bin/himalaya
+    completer: share/bash-completion/completions/himalaya
+    plugs:
+      - home
+      - network
+      - password-manager-service
+      - removable-media
+
+  secret-tool:
+    command: usr/bin/secret-tool
+    plugs:
+      - password-manager-service
+
+parts:
+  himalaya:
+    plugin: rust
+    source: https://github.com/pimalaya/himalaya.git
+    source-tag: v$SNAPCRAFT_PROJECT_VERSION
+    source-depth: 1
+    rust-channel: stable
+    build-packages:
+      - build-essential
+      # The default "vendored" feature builds OpenSSL and SQLite from source.
+      - perl
+    override-build: |
+      craftctl default
+      mkdir -p "$CRAFT_PART_INSTALL/share/bash-completion/completions"
+      "$CRAFT_PART_INSTALL/bin/himalaya" completion bash \
+        > "$CRAFT_PART_INSTALL/share/bash-completion/completions/himalaya"
+      install -Dm644 LICENSE-MIT LICENSE-APACHE \
+        -t "$CRAFT_PART_INSTALL/usr/share/doc/himalaya"
+    # Password commands can query the desktop keyring with secret-tool.
+    stage-packages:
+      - libsecret-tools
