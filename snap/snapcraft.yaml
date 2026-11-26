@@ -1,6 +1,6 @@
 name: himalaya
 base: core26
-version: '2.2.1'
+version: '3.0.0'
 title: Himalaya
 icon: snap/gui/himalaya.png
 summary: Manage your emails from the command line
